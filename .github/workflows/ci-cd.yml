@@ -61,7 +61,7 @@ jobs:
 
       # ---- 9️⃣ Deploy Stage (only main branch) ----
       - name: Login & Push to Docker Hub
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
         run: |
           echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/mongo-express-exam:${{ env.IMAGE_TAG }}
