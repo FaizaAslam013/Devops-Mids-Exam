@@ -1,0 +1,67 @@
+name: CI-CD
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  pipeline:
+    runs-on: ubuntu-latest
+
+    services:
+      mongo:
+        image: mongo:7
+        ports: ['27017:27017']
+
+    env:
+      ME_CONFIG_MONGODB_URL: mongodb://127.0.0.1:27017
+      ME_CONFIG_SITE_SESSIONSECRET: ${{ secrets.ME_CONFIG_SITE_SESSIONSECRET }}
+      NODE_ENV: test
+
+    steps:
+      # ---- 1️⃣ Checkout Code ----
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ---- 2️⃣ Setup Node Environment ----
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # ---- 3️⃣ Build & Install Dependencies ----
+      - name: Install dependencies
+        run: npm ci
+
+      # ---- 4️⃣ Lint Stage ----
+      - name: Lint
+        run: npm run lint
+
+      # ---- 5️⃣ Security Scan Stage ----
+      - name: Security scan (npm audit)
+        run: npm audit --audit-level=moderate || true
+
+      # ---- 6️⃣ Wait for Mongo to be Ready ----
+      - name: Wait for Mongo
+        run: |
+          timeout 1m bash -c 'until nc -z 127.0.0.1 27017; do sleep 1; done'
+
+      # ---- 7️⃣ Test Stage ----
+      - name: Run Tests
+        run: npm test
+
+      # ---- 8️⃣ Build Docker Image (with timestamp tag) ----
+      - name: Set image tag
+        id: tag
+        run: echo "IMAGE_TAG=$(date -u +%Y%m%d%H%M%S)-${GITHUB_SHA::8}" >> $GITHUB_ENV
+
+      - name: Build Docker image
+        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/mongo-express-exam:${{ env.IMAGE_TAG }} .
+
+      # ---- 9️⃣ Deploy Stage (only main branch) ----
+      - name: Login & Push to Docker Hub
+        if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+        run: |
+          echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/mongo-express-exam:${{ env.IMAGE_TAG }}
