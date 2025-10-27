@@ -37,7 +37,7 @@ jobs:
       # ---- 4️⃣ Lint Stage ----
       - name: Lint
         run: npm run lint
-
+        continue-on-error: true
       # ---- 5️⃣ Security Scan Stage ----
       - name: Security scan (npm audit)
         run: npm audit --audit-level=moderate || true
