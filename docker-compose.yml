@@ -5,9 +5,8 @@ services:
     image: mongo:6.0
     container_name: my_mongo
     restart: always
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: example
+    env_file:
+      - .env
     ports:
       - "27017:27017"
     volumes:
@@ -17,17 +16,20 @@ services:
     image: mongo-express:1.0.0
     container_name: my_app
     restart: always
-    environment:
-      ME_CONFIG_MONGODB_ADMINUSERNAME: root
-      ME_CONFIG_MONGODB_ADMINPASSWORD: example
-      ME_CONFIG_MONGODB_SERVER: my_mongo
-      ME_CONFIG_MONGODB_PORT: 27017
-      ME_CONFIG_BASICAUTH_USERNAME: admin   # set login
-      ME_CONFIG_BASICAUTH_PASSWORD: admin
+    env_file:
+      - .env
     depends_on:
       - my_mongo
+      - redis
     expose:
-      - "8081"  # expose internally to nginx
+      - "8081"
+
+  redis:
+    image: redis:7
+    container_name: redis
+    restart: always
+    ports:
+      - "6379:6379"
 
   my_nginx:
     image: nginx:latest
