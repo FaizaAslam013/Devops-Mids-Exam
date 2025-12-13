@@ -104,3 +104,11 @@ cypress/screenshots
 # nyc test coverage
 # =========
 .nyc_output/
+
+
+# Terraform
+infra/.terraform/
+**/.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
