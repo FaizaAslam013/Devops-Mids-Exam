@@ -15,7 +15,8 @@ spec:
     spec:
       containers:
         - name: mongo-express
-          image: mongo-express:1.0.0
+          image: FaizaAslam013/mongo-express-exam:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 8081
           envFrom:
@@ -30,7 +31,10 @@ metadata:
   name: mongo-express
   namespace: dev
 spec:
+  type: NodePort
   selector:
     app: mongo-express
   ports:
     - port: 8081
+      targetPort: 8081
+      nodePort: 30080
