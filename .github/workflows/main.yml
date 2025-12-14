@@ -148,7 +148,7 @@ jobs:
       - name: Read EC2 Public DNS
         id: out
         run: |
-          HOST=$(terraform output -raw ec2_public_dns)
+          HOST=$(terraform output -raw ec2_public_ip)
           echo "ec2_host=$HOST" >> "$GITHUB_OUTPUT"
 
 # ---------------------------------------------------
@@ -173,10 +173,19 @@ jobs:
 
       - name: Create Ansible inventory
         run: |
-          cat > ansible/inventory.ini <<EOF
-          [ec2]
-          server1 ansible_host=${{ needs.terraform_apply.outputs.ec2_host }} ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/devops-key.pem
-          EOF
+         mkdir -p ansible
+         cat <<EOF > ansible/inventory.ini
+         [ec2]
+         server1 ansible_host=${{ needs.terraform_apply.outputs.ec2_host }} ansible_user=ubuntu ansible_ssh_private_key_file=${HOME}/.ssh/devops-key.pem
+         EOF
+
+         echo "===== inventory.ini ====="
+         cat ansible/inventory.ini
+      - name: Test SSH connectivity
+        run: |
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/devops-key.pem ubuntu@${{ needs.terraform_apply.outputs.ec2_host }} "echo OK"
+
+
 
       - name: Run Ansible Playbook
         run: |
