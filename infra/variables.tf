@@ -26,4 +26,6 @@ variable "app_port" {
 variable "key_name" {
   type        = string
   description = "Existing EC2 Key Pair name in AWS"
+  default = "devops-key"
+
 }
