@@ -68,7 +68,7 @@
       become_user: ubuntu
       shell: |
         set -e
-        minikube status >/dev/null 2>&1 || minikube start --driver=docker
+        minikube status >/dev/null 2>&1 || minikube start --driver=docker --force
       args:
         executable: /bin/bash
 
