@@ -129,7 +129,7 @@ data "aws_subnets" "default" {
 # -----------------------------
 # Security Group in Default VPC
 # -----------------------------
-resource "aws_security_group" "sg" {
+/*resource "aws_security_group" "sg" {
   name        = "${var.project_name}-sg"
   description = "Allow SSH and app port"
   vpc_id      = data.aws_vpc.default.id
@@ -161,6 +161,12 @@ resource "aws_security_group" "sg" {
     Name = "${var.project_name}-sg"
   }
 }
+*/
+data "aws_security_group" "existing_sg" {
+  name   = "${var.project_name}-sg"
+  vpc_id = data.aws_vpc.default.id
+}
+
 
 # -----------------------------
 # EC2 in a Default Subnet
@@ -169,7 +175,9 @@ resource "aws_instance" "app" {
   ami                    = data.aws_ami.ubuntu.id
   instance_type          = var.instance_type
   subnet_id              = data.aws_subnets.default.ids[0] # picks first default subnet
-  vpc_security_group_ids = [aws_security_group.sg.id]
+/*  vpc_security_group_ids = [aws_security_group.sg.id]*/
+  vpc_security_group_ids = [data.aws_security_group.existing_sg.id]
+
   key_name               = var.key_name
 
   associate_public_ip_address = true
