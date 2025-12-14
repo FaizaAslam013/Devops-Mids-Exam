@@ -1,5 +1,3 @@
-build-assets.json
-
 # OS
 # ===========
 .DS_Store
@@ -37,7 +35,7 @@ config/env/local.js
 config/env/local-*.js
 *.pem
 
-# Ignoring MEAN.JS's gh-pages branch for documenation
+# Ignoring MEAN.JS's gh-pages branch for documentation
 _site/
 
 # General
@@ -83,24 +81,32 @@ local.properties
 *.iml
 
 # Cloud9 IDE
-# =========
+# ==========
 .c9/
 data/
 mongod
 
 # Visual Studio
-# =========
+# ============
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 
-# E2E Testing 
-# =========
+# E2E Testing
+# ==========
 instrumented/
 cypress/videos
 cypress/screenshots
 
 # nyc test coverage
-# =========
+# ==========
 .nyc_output/
+
+# Terraform
+# ==========
+infra/.terraform/
+**/.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
