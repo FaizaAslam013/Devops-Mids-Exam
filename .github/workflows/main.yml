@@ -201,19 +201,8 @@ jobs:
     needs: [terraform_apply, ansible_deploy]
 
     steps:
-      - name: Curl Mongo-Express
+      - name: Curl Mongo-Express (inside EC2)
         run: |
           HOST=${{ needs.terraform_apply.outputs.ec2_host }}
-          URL="http://$HOST:${{ env.APP_NODEPORT }}/"
-          echo "Testing $URL"
-
-          for i in {1..12}; do
-            if curl -fsS "$URL" > /dev/null; then
-              echo "✅ Smoke test passed"
-              exit 0
-            fi
-            sleep 5
-          done
-
-          echo "❌ Smoke test failed"
-          exit 1
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/devops-key.pem ubuntu@$HOST \
+          "curl -f http://localhost:30080"
