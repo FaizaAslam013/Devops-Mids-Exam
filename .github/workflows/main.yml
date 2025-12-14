@@ -1,0 +1,198 @@
+name: CI-CD Pipeline
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: cicd-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: "20"
+  DOCKER_IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/mongo-express-exam
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  TF_DIR: infra
+  ANSIBLE_DIR: ansible
+  APP_NODEPORT: "30080"   # must match your mongo-express Service
+
+# ---------------------------------------------------
+# 1️⃣ BUILD & TEST
+# ---------------------------------------------------
+jobs:
+  build_test:
+    name: 1) Build & Test
+    runs-on: ubuntu-latest
+
+    services:
+      mongo:
+        image: mongo:7
+        ports:
+          - 27017:27017
+
+    env:
+      ME_CONFIG_MONGODB_URL: mongodb://127.0.0.1:27017
+      NODE_ENV: test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Wait for MongoDB
+        run: |
+          timeout 60 bash -c 'until nc -z 127.0.0.1 27017; do sleep 1; done'
+
+      - name: Build app
+        run: npm run build --if-present
+
+      - name: Run tests
+        run: npm test
+
+# ---------------------------------------------------
+# 2️⃣ LINT + SECURITY
+# ---------------------------------------------------
+  security_lint:
+    name: 2) Lint & Security
+    runs-on: ubuntu-latest
+    needs: build_test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - run: npm ci
+      - run: npm run lint
+      - run: npm audit --audit-level=moderate
+
+# ---------------------------------------------------
+# 3️⃣ DOCKER BUILD & PUSH
+# ---------------------------------------------------
+  docker_push:
+    name: 3) Docker Build & Push
+    runs-on: ubuntu-latest
+    needs: security_lint
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Docker login
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build & push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.DOCKER_IMAGE }}:latest
+            ${{ env.DOCKER_IMAGE }}:sha-${{ github.sha }}
+
+# ---------------------------------------------------
+# 4️⃣ TERRAFORM APPLY (EC2)
+# ---------------------------------------------------
+  terraform_apply:
+    name: 4) Terraform Apply
+    runs-on: ubuntu-latest
+    needs: docker_push
+
+    defaults:
+      run:
+        working-directory: ${{ env.TF_DIR }}
+
+    outputs:
+      ec2_host: ${{ steps.out.outputs.ec2_host }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - run: terraform init
+      - run: terraform validate
+      - run: terraform apply -auto-approve
+
+      - name: Read EC2 Public DNS
+        id: out
+        run: |
+          HOST=$(terraform output -raw ec2_public_dns)
+          echo "ec2_host=$HOST" >> "$GITHUB_OUTPUT"
+
+# ---------------------------------------------------
+# 5️⃣ DEPLOY USING ANSIBLE + KUBECTL
+# ---------------------------------------------------
+  ansible_deploy:
+    name: 5) Deploy (Ansible + Kubernetes)
+    runs-on: ubuntu-latest
+    needs: terraform_apply
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Ansible
+        run: sudo apt-get update && sudo apt-get install -y ansible
+
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/devops-key.pem
+          chmod 600 ~/.ssh/devops-key.pem
+
+      - name: Create Ansible inventory
+        run: |
+          cat > ansible/inventory.ini <<EOF
+          [ec2]
+          server1 ansible_host=${{ needs.terraform_apply.outputs.ec2_host }} ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/devops-key.pem
+          EOF
+
+      - name: Run Ansible Playbook
+        run: |
+          ansible-playbook -i ansible/inventory.ini ansible/playbook.yml \
+            --extra-vars "docker_image=${{ env.DOCKER_IMAGE }}:sha-${{ github.sha }}"
+
+# ---------------------------------------------------
+# 6️⃣ POST-DEPLOY SMOKE TEST
+# ---------------------------------------------------
+  smoke_test:
+    name: 6) Smoke Test
+    runs-on: ubuntu-latest
+    needs: [terraform_apply, ansible_deploy]
+
+    steps:
+      - name: Curl Mongo-Express
+        run: |
+          HOST=${{ needs.terraform_apply.outputs.ec2_host }}
+          URL="http://$HOST:${{ env.APP_NODEPORT }}/"
+          echo "Testing $URL"
+
+          for i in {1..12}; do
+            if curl -fsS "$URL" > /dev/null; then
+              echo "✅ Smoke test passed"
+              exit 0
+            fi
+            sleep 5
+          done
+
+          echo "❌ Smoke test failed"
+          exit 1
