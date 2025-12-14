@@ -79,6 +79,13 @@
         dest: "/home/ubuntu/Devops-Mids-Exam"
         version: "master"
         update: yes
+        
+    - name: Ensure dev namespace exists
+      become_user: ubuntu
+      shell: kubectl create namespace dev --dry-run=client -o yaml | kubectl apply -f -
+      args:
+         executable: /bin/bash
+
 
     - name: Apply Kubernetes manifests
       become_user: ubuntu
