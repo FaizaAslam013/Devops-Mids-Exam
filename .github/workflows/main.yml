@@ -122,6 +122,18 @@ jobs:
       - uses: actions/checkout@v4
 
       - uses: hashicorp/setup-terraform@v3
+      - name: Check AWS secrets are not empty
+        env:
+          AKID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          SAK:  ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          REG:  ${{ secrets.AWS_REGION }}
+        run: |
+          echo "AKID length: ${#AKID}"
+          echo "SAK  length: ${#SAK}"
+          echo "REG  length: ${#REG}"
+          test ${#AKID} -gt 10
+          test ${#SAK}  -gt 20
+          test ${#REG}  -gt 5
 
       - uses: aws-actions/configure-aws-credentials@v4
         with:
