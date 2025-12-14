@@ -60,12 +60,15 @@
         fi
       args:
         executable: /bin/bash
-
+        
+    - name: Reset SSH connection to apply docker group
+      meta: reset_connection
+      
     - name: Start Minikube (docker driver)
-      # become_user: ubuntu
+      become_user: ubuntu
       shell: |
         set -e
-        minikube status >/dev/null 2>&1 || sudo minikube start --driver=docker
+        minikube status >/dev/null 2>&1 || minikube start --driver=docker
       args:
         executable: /bin/bash
 
