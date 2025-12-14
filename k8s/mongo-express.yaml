@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: mongo-express
-          image: FaizaAslam013/mongo-express-exam:latest
+          image: faiza22/mongo-express-exam:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 8081
