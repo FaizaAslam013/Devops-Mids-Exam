@@ -27,6 +27,35 @@ The system architecture consists of:
 - AWS infrastructure hosting the environment
 
 ---
+**##INFRA STRUCTURE DIAGRAM**
+User
+ │
+ ▼
+NGINX
+ │
+ ▼
+Mongo-Express App
+ │
+ ▼
+MongoDB ── Redis
+ │
+ ▼
+Kubernetes (Minikube / EKS)
+ │
+ ▼
+EC2 Instance
+ │
+ ▼
+AWS VPC
+
+Automation:
+Terraform → AWS
+Ansible → EC2
+CI/CD → Kubernetes
+
+Monitoring:
+Prometheus → Grafana
+
 
 ## CI/CD Pipeline Overview
 
