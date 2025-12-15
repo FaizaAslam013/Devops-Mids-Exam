@@ -1,64 +1,94 @@
-# Mongo-Express DevOps Project
 
-## Project Overview
-This project demonstrates a full DevOps workflow for a Mongo-Express application using Docker, Nginx, and GitHub Actions CI/CD. 
-The app is containerized and includes:
-- Backend app (`app`) built with Node.js & Express
-- MongoDB database (`mongo`)
-- Nginx as a reverse proxy
-- CI/CD pipeline to build, test, and deploy Docker images to Docker Hub
 
-## Features
-- Health check endpoint (`/health`) returns `{status: "ok"}`
-- Automated Docker image build and push on merge to master
-- Secure secrets management with GitHub Secrets
-- Verified running containers for local testing
+  # DevOps Mid Exam – Cloud Native Application
 
-## Prerequisites
-- Git installed
-- Docker Desktop or Docker CLI
-- Node.js installed (for local testing)
+This project demonstrates the design and implementation of a complete cloud-native DevOps stack using modern DevOps tools.  
+The application is based on an open-source Node.js project (mongo-express) integrated with MongoDB and Redis.
 
-## Installation & Running
-1. Clone the repository:
-```bash
-git clone <https://github.com/FaizaAslam013/Devops-Mids-Exam>
-cd <repo-folder>
-```
+---
 
-2. Copy `.env.example` to `.env` and fill in required secrets:
+## Project Objectives
+- Containerize an application with database and cache
+- Automate infrastructure provisioning using Terraform
+- Deploy and manage the application using Kubernetes
+- Automate configuration using Ansible
+- Implement CI/CD pipeline
+- Integrate monitoring and observability
+- Deliver a production-ready DevOps stack
 
-```bash
+---
+
+## Technology Stack
+- Application: Node.js (mongo-express)
+- Database: MongoDB
+- Cache: Redis
+- Containerization: Docker, Docker Compose
+- Infrastructure as Code: Terraform
+- Configuration Management: Ansible
+- Orchestration: Kubernetes (Minikube / EKS)
+- CI/CD: GitHub Actions
+- Monitoring: Prometheus, Grafana
+- Cloud Provider: AWS
+
+---
+
+## Running the Application Locally (Docker Compose)
+
+### Prerequisites
+- Docker
+- Docker Compose
+
+### Steps
+bash
 cp .env.example .env
-```
+docker compose up -d
 
-3. Build and run containers:
+**The application is accessible at:**
 
-```bash
-docker compose up --build
-```
+http://localhost:8080
 
-4. Verify services:
+**Infrastructure Setup and Teardown (Terraform)
+Setup**
+cd infra
+terraform init
+terraform apply
 
-* Health endpoint: `http://localhost:8080/health` → returns `{status: "ok"}`
-* Running containers: `docker ps` → should show `app`, `mongo`, `nginx`
+**Teardown**
+terraform destroy
 
-## CI/CD Pipeline
 
-* Triggered only on **merge to master**
-* Steps:
+Terraform provisions AWS infrastructure including networking resources and compute services.
 
-  1. Build Docker image
-  2. Run tests
-  3. Push Docker image to Docker Hub with timestamped tag
-* Secrets used:
+**Kubernetes Deployment**
+**Deployment Steps**
+kubectl apply -f k8s/
+kubectl get pods -n dev
+kubectl get svc -n dev
 
-  * `DOCKERHUB_USERNAME`
-  * `DOCKERHUB_TOKEN`
-  * `ME_CONFIG_SITE_SESSIONSECRET`
+
+The application, database, and cache are deployed as separate Kubernetes resources and communicate using Kubernetes services.
+
+**CI/CD Pipeline**
+
+A fully automated CI/CD pipeline is implemented using GitHub Actions.
+The pipeline includes:
+
+1. Build and test
+
+2.Linting and quality checks
+
+3.Docker image build and push
+
+4.Deployment to Kubernetes
+
+5.Smoke testing
+
+**Monitoring and Observability**
+
+Monitoring is implemented using Prometheus and Grafana to collect and visualize system and application metrics.
 
 ## Contribution
 
-* **Faiza Aslam**: App code, router, tests
-* **Mamoona Ghania**: Docker-compose, Nginx configuration
-* **Noor fatima**: CI/CD workflow, secret management,deployment
+* **Faiza Aslam**:step 1,  step 5, step 8 
+* **Mamoona Ghania**: step 2 , step 4 ,step 5 
+* **Noor fatima**: step 6, step 7
