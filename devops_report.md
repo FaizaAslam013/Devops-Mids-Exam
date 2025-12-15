@@ -27,7 +27,7 @@ The system architecture consists of:
 - AWS infrastructure hosting the environment
 
 ---
-**##INFRA STRUCTURE DIAGRAM**
+**##INFRA-STRUCTURE DIAGRAM**
 User->nginx->mongo-express app->mongodb(redis)->kubernetes(minikube)->ec2 instance->AWS VPC
 
 Automation:
