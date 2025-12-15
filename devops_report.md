@@ -1,69 +1,69 @@
-# DevOps Final Exam Report
-## Project: Mongo-Express DevOps Pipeline
+
+
+# DevOps Project Report
+
+
+
+## Technologies Used
+
+Docker and Docker Compose were used to containerize the application and manage local services.  
+Terraform was used to provision cloud infrastructure on AWS using Infrastructure as Code principles.  
+Ansible was used for automated configuration management.  
+Kubernetes was used to orchestrate and manage containerized workloads.  
+GitHub Actions was used to implement a CI/CD pipeline.  
+Prometheus and Grafana were used to implement monitoring and observability.
 
 ---
 
-## 1. Technologies Used
-- **Node.js & Express.js**: Backend application
-- **MongoDB**: Database
-- **Docker & Docker Compose**: Containerization
-- **Nginx**: Reverse proxy
-- **GitHub Actions**: CI/CD automation
-- **GitHub Secrets**: Secure secret management
-- **Jest**: Testing framework
+## Architecture Overview
+
+The system architecture consists of:
+- User accessing the application through a web interface
+- Nginx acting as a reverse proxy
+- Application container (mongo-express)
+- MongoDB database with persistent storage
+- Redis cache service
+- Kubernetes cluster managing all workloads
+- AWS infrastructure hosting the environment
 
 ---
 
-## 2. Pipeline Design
+## CI/CD Pipeline Overview
+
 The CI/CD pipeline follows these stages:
+1. Source code checkout
+2. Dependency installation
+3. Testing and linting
+4. Docker image build and push
+5. Infrastructure and application deployment
+6. Post-deployment smoke testing
 
-1. **Build Stage**: Docker image for the app is built
-2. **Test Stage**: Health endpoint tests are executed
-3. **Deploy Stage** (master branch only):
-   - Login to Docker Hub using GitHub Secrets
-   - Push Docker image with timestamped tag
-
-**Pipeline Flow Diagram**
-
----
-
-## 3. Secret Management Strategy
-- Secrets are never stored in the repo; managed using **GitHub Secrets**
-  - `DOCKERHUB_USERNAME` → Docker Hub login
-  - `DOCKERHUB_TOKEN` → Docker Hub authentication
-  - `ME_CONFIG_SITE_SESSIONSECRET` → App session security
-- Accessed securely in CI/CD workflow using `${{ secrets.NAME }}`
+This ensures automated and reliable delivery of application changes.
 
 ---
 
-## 4. Testing Process
-- `/health` endpoint: returns `{status: "ok"}`
-- Automated Jest tests: `test/health.test.js`
-- CI pipeline will fail if tests fail → ensures only validated images are deployed
+## Secret Management Strategy
+
+Secrets are managed using environment variables.  
+Sensitive information is stored in `.env` files which are ignored using `.gitignore`.  
+A `.env.example` file is committed to provide a template without exposing real secrets.  
+No secrets are hardcoded in source code or configuration files.
 
 ---
 
-## 5. Lessons Learned
-- Clear **team collaboration** prevents conflicts and ensures smooth CI/CD
-- **CI/CD pipeline** automates testing and deployment, ensuring reliability
-- **Secrets management** is critical for security; GitHub Secrets is safe and convenient
-- **Containerization** ensures the app works consistently across environments
-- **Documentation** is essential for reproducibility and submission
+## Monitoring Strategy
+
+Prometheus is used to collect metrics from nodes and services.  
+Grafana is used to visualize system metrics such as CPU usage, memory usage, and application performance.  
+This setup enables effective monitoring and observability of the deployed system.
 
 ---
 
-## 6. Submission Proof
-All screenshots stored in `screenshots/` folder:
-1. **Pipeline Passing** → GitHub Actions green checkmark
-2. **Running Containers** → Terminal or Docker Desktop showing `app`, `mongo`, `nginx`
-3. **Health Endpoint** → Browser showing `{status: "ok"}`
-4. **Docker Hub Image** → Timestamped Docker image tag
-5. **PRs and Contributions** → GitHub showing merged PRs
+## Lessons Learned
 
----
-
-## 7. Final Compliance Summary
-> All members completed assigned tasks and merged their branches into `master`.  
-> The CI/CD pipeline successfully built, tested, and deployed Docker images to Docker Hub.  
-> Screenshots and documentation confirm full compliance with exam requirements.
-
+- Understanding Docker containerization and networking
+- Applying Infrastructure as Code concepts using Terraform
+- Automating server configuration using Ansible
+- Deploying and managing applications using Kubernetes
+- Building CI/CD pipelines with GitHub Actions
+- Implementing monitoring using Prometheus and Grafana
