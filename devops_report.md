@@ -28,25 +28,7 @@ The system architecture consists of:
 
 ---
 **##INFRA STRUCTURE DIAGRAM**
-User
- │
- ▼
-NGINX
- │
- ▼
-Mongo-Express App
- │
- ▼
-MongoDB ── Redis
- │
- ▼
-Kubernetes (Minikube / EKS)
- │
- ▼
-EC2 Instance
- │
- ▼
-AWS VPC
+User->nginx->mongo-express app->mongodb(redis)->kubernetes(minikube)->ec2 instance->AWS VPC
 
 Automation:
 Terraform → AWS
